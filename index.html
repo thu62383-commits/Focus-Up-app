@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#594de0">
+  <title>FocusUp — Nền tảng Làm chủ Thói quen Số & Tập trung Học tập</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Custom Background Layer -->
+  <div id="bgMediaLayer"><video id="bgVideoEl" loop muted playsinline></video></div>
+  <div id="bgOverlayLayer"></div>
+
+  <!-- Hidden Background Audio Player -->
+  <audio id="bgAudioPlayer" preload="none"></audio>
+
+  <div class="app">
+    <!-- SIDEBAR NAVIGATION -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="logo">◉</div>
+        Focus<span>Up</span>
+      </div>
+
+      <!-- Mini User Card -->
+      <div class="user-mini-card" onclick="go('profile')" title="Xem hồ sơ cá nhân">
+        <div class="avatar-circle" id="sideAvatar">U</div>
+        <div class="user-mini-info">
+          <strong id="sideUserName">Người dùng mới</strong>
+          <small id="sideUserRank">🌱 Beginner · 0 XP</small>
+        </div>
+      </div>
+
+      <div class="nav-label">KHÔNG GIAN CHÍNH</div>
+      <nav class="nav" id="mainNav">
+        <button class="active" data-page="home"><span class="ico">⌂</span><span>Tổng quan</span></button>
+        <button data-page="tasks"><span class="ico">☑</span><span>Nhiệm vụ ngày</span></button>
+        <button data-page="history"><span class="ico">📅</span><span>Lịch sử hoạt động</span></button>
+        <button data-page="focus"><span class="ico">◷</span><span>Phiên tập trung</span></button>
+        <button data-page="fourself"><span class="ico">🧭</span><span>Mô hình 4 Tự</span></button>
+        <button data-page="rank"><span class="ico">🏆</span><span>Rank học tập</span></button>
+        <button data-page="friends"><span class="ico">👥</span><span>Bạn bè</span><span class="badge-count" id="friendReqBadge" style="display:none">0</span></button>
+        <button data-page="leaderboard"><span class="ico">📊</span><span>Bảng xếp hạng</span></button>
+        <button data-page="monthly"><span class="ico">📈</span><span>Đánh giá tháng</span></button>
+        <button data-page="customize"><span class="ico">🎨</span><span>Cá nhân hóa</span></button>
+        <button data-page="profile"><span class="ico">👤</span><span>Hồ sơ cá nhân</span></button>
+        <button data-page="settings"><span class="ico">⚙</span><span>Cài đặt</span></button>
+      </nav>
+
+      <div class="mode-banner" id="storageModeBanner">
+        <b>💾 Chế độ Local Demo</b><br>
+        Dữ liệu lưu trên trình duyệt này. Cấu hình Firebase để đồng bộ & kết bạn.
+      </div>
+    </aside>
+
+    <!-- MAIN WORKSPACE -->
+    <main>
+      <div class="topbar">
+        <div>
+          <div class="eyebrow" id="pageEyebrow">LÀM CHỦ THÓI QUEN SỐ</div>
+          <h1 id="pageTitle">Chào bạn, hôm nay mình tập trung nhé!</h1>
+          <p class="subtitle" id="pageSub">Xây dựng kỷ luật bền vững qua từng ngày không giới hạn.</p>
+        </div>
+        <div class="topbar-right">
+          <div class="date-pill" id="todayLabel"></div>
+          <button class="btn btn-soft btn-small" id="quickAudioBtn" onclick="toggleBgAudioQuick()" title="Bật/Tắt nhạc nền">🔇 Nhạc nền</button>
+          <button class="btn btn-outline btn-small" id="authActionBtn" onclick="openAuthModal()">Tài khoản</button>
+        </div>
+      </div>
+
+      <!-- 1. TỔNG QUAN (HOME) -->
+      <section class="page active" id="home">
+        <div class="hero">
+          <div>
+            <span class="tag" style="background:rgba(255,255,255,0.22);color:#fff" id="daysUsedBadge">NGÀY THỨ 1 SỬ DỤNG FOCUSUP</span>
+            <h2>Đừng để não “lướt”<br>thay bạn làm chủ.</h2>
+            <p>Không giới hạn 21 ngày — hành trình rèn luyện sự tập trung dài hạn, lưu giữ toàn bộ lịch sử và tiến bộ của bạn.</p>
+            <div class="hero-actions">
+              <button class="btn btn-white" onclick="go('tasks')">Quản lý nhiệm vụ hôm nay →</button>
+              <button class="btn btn-glass" onclick="go('focus')">Bắt đầu Pomodoro</button>
+            </div>
+          </div>
+          <div class="hero-art">🧠✨</div>
+        </div>
+
+        <div class="grid stats">
+          <div class="card stat">
+            <div class="stat-icon" style="background:var(--orange-light)">🔥</div>
+            <div><strong id="homeStreakStat">0 ngày</strong><small id="homeStreakSub">Chuỗi tập trung (Kỷ lục: 0)</small></div>
+          </div>
+          <div class="card stat">
+            <div class="stat-icon" style="background:var(--blue-light)">⏱️</div>
+            <div><strong id="homeFocusStat">0 phút</strong><small>Tổng thời gian tập trung</small></div>
+          </div>
+          <div class="card stat">
+            <div class="stat-icon" style="background:var(--green-light)">✅</div>
+            <div><strong id="homeTasksStat">0</strong><small>Nhiệm vụ đã hoàn thành</small></div>
+          </div>
+          <div class="card stat">
+            <div class="stat-icon" style="background:var(--purple-light)">⚡</div>
+            <div><strong id="homeXpStat">0 XP</strong><small id="homeRankStat">🌱 Beginner</small></div>
+          </div>
+        </div>
+
+        <div class="grid two">
+          <div class="card">
+            <div class="section-head" style="margin-top:0">
+              <h3>Nhiệm vụ hôm nay (<span id="homeTodayDateStr"></span>)</h3>
+              <button class="text-btn" onclick="go('tasks')">+ Thêm / Sửa →</button>
+            </div>
+            <div id="homeTodayTaskList"></div>
+          </div>
+
+          <div class="card">
+            <div class="section-head" style="margin-top:0">
+              <h3>Tiến độ Cấp bậc & Chuỗi</h3>
+              <button class="text-btn" onclick="go('rank')">Chi tiết Rank →</button>
+            </div>
+            <div style="margin:12px 0">
+              <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+                <b id="homeRankTitle">🌱 Beginner</b>
+                <span class="muted" id="homeRankProgressText">0 / 100 XP</span>
+              </div>
+              <div class="progress"><span id="homeRankBar" style="width:0%"></span></div>
+            </div>
+            <div style="background:var(--bg);padding:14px;border-radius:14px;margin-top:16px">
+              <b>Quy tắc Chuỗi tập trung (Focus Streak):</b>
+              <p class="muted" style="font-size:13px;margin:6px 0 0">
+                Hoàn thành ít nhất 1 nhiệm vụ/ngày để tăng chuỗi. Nghỉ 1 ngày được bảo lưu; nghỉ <b>2 ngày liên tiếp</b> chuỗi sẽ đặt lại về 0 (XP và lịch sử vẫn giữ nguyên).
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-head">
+          <h3>Mô hình “4 Tự” cốt lõi</h3>
+          <button class="text-btn" onclick="go('fourself')">Thực hành ngay →</button>
+        </div>
+        <div class="grid four">
+          <div class="card">
+            <div class="stat-icon" style="background:var(--blue-light);margin-bottom:10px">🔕</div>
+            <b>1. Tự giới hạn</b>
+            <p class="muted" style="font-size:13px;margin-bottom:0">Tắt thông báo rác, giới hạn video ngắn và đặt điện thoại xa giường ngủ.</p>
+          </div>
+          <div class="card">
+            <div class="stat-icon" style="background:var(--purple-light);margin-bottom:10px">📝</div>
+            <b>2. Tự tổ chức</b>
+            <p class="muted" style="font-size:13px;margin-bottom:0">Làm từng việc một, chia nhỏ mục tiêu và dùng Pomodoro linh hoạt.</p>
+          </div>
+          <div class="card">
+            <div class="stat-icon" style="background:var(--pink-light);margin-bottom:10px">🐢</div>
+            <b>3. Tự làm chậm</b>
+            <p class="muted" style="font-size:13px;margin-bottom:0">Dành thời gian cho hoạt động không màn hình: đọc sách, đi bộ, vẽ.</p>
+          </div>
+          <div class="card">
+            <div class="stat-icon" style="background:var(--orange-light);margin-bottom:10px">🤝</div>
+            <b>4. Tự kết nối</b>
+            <p class="muted" style="font-size:13px;margin-bottom:0">Giờ vàng trò chuyện trực tiếp với gia đình, bạn bè và vận động ngoài trời.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2. QUẢN LÝ NHIỆM VỤ THEO NGÀY (TASKS) -->
+      <section class="page" id="tasks">
+        <div class="grid two">
+          <div class="card">
+            <div class="section-head" style="margin-top:0">
+              <div>
+                <span class="tag">QUẢN LÝ ĐỘC LẬP THEO NGÀY</span>
+                <h2 style="margin:6px 0 0">Nhiệm vụ ngày <span id="selectedTaskDateDisplay"></span></h2>
+              </div>
+              <input type="date" class="field" id="taskDatePicker" style="width:auto">
+            </div>
+            <p class="muted" style="font-size:13px">Mỗi nhiệm vụ có ID riêng biệt. Hoàn thành nhiệm vụ cộng <b>+20 XP</b> (tối đa nhận XP 1 lần cho mỗi nhiệm vụ).</p>
+            <div id="dailyTaskListContainer" style="margin-top:16px"></div>
+          </div>
+
+          <div class="card" style="align-self:start">
+            <h3 id="taskFormHeading">Thêm nhiệm vụ mới</h3>
+            <input type="hidden" id="editTaskId">
+            <label>Tên nhiệm vụ *</label>
+            <input class="field" id="taskTitleInput" placeholder="VD: Giải 10 bài tập Toán đại số">
+
+            <label>Mô tả ngắn</label>
+            <textarea class="field" id="taskDescInput" placeholder="Ghi chú chi tiết mục tiêu cần đạt..."></textarea>
+
+            <label>Nhóm thuộc mô hình 4 Tự *</label>
+            <select class="field" id="taskGroupInput">
+              <option value="Tự tổ chức">📝 Tự tổ chức (Học tập, làm việc, Pomodoro)</option>
+              <option value="Tự giới hạn">🔕 Tự giới hạn (Tắt thông báo, giảm lướt mạng)</option>
+              <option value="Tự làm chậm">🐢 Tự làm chậm (Đọc sách, đi bộ, không màn hình)</option>
+              <option value="Tự kết nối">🤝 Tự kết nối (Trò chuyện gia đình, bạn bè)</option>
+            </select>
+
+            <label>Thời gian dự kiến (phút)</label>
+            <input class="field" type="number" id="taskDurationInput" min="5" max="480" value="25">
+
+            <div style="display:flex;gap:10px;margin-top:18px">
+              <button class="btn btn-primary" style="flex:1" onclick="saveTaskForm()">💾 Lưu nhiệm vụ</button>
+              <button class="btn btn-outline" id="cancelEditTaskBtn" style="display:none" onclick="resetTaskForm()">Hủy</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3. LỊCH SỬ HOẠT ĐỘNG & LỊCH THEO THÁNG (HISTORY) -->
+      <section class="page" id="history">
+        <div class="card" style="margin-bottom:18px">
+          <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">
+            <div>
+              <label style="margin-top:0">Lọc theo nhóm 4 Tự</label>
+              <select class="field" id="histFilterGroup" onchange="renderCalendarAndDayDetail()">
+                <option value="ALL">Tất cả nhóm 4 Tự</option>
+                <option value="Tự giới hạn">🔕 Tự giới hạn</option>
+                <option value="Tự tổ chức">📝 Tự tổ chức</option>
+                <option value="Tự làm chậm">🐢 Tự làm chậm</option>
+                <option value="Tự kết nối">🤝 Tự kết nối</option>
+              </select>
+            </div>
+            <div>
+              <label style="margin-top:0">Lọc trạng thái nhiệm vụ</label>
+              <select class="field" id="histFilterStatus" onchange="renderCalendarAndDayDetail()">
+                <option value="ALL">Tất cả trạng thái</option>
+                <option value="DONE">Đã hoàn thành</option>
+                <option value="PENDING">Chưa hoàn thành</option>
+              </select>
+            </div>
+            <div style="margin-left:auto;display:flex;gap:14px;font-size:12.5px;align-items:center">
+              <span><i style="display:inline-block;width:10px;height:10px;background:var(--green);border-radius:50%"></i> Đã hoàn thành NV</span>
+              <span><i style="display:inline-block;width:10px;height:10px;background:var(--orange);border-radius:50%"></i> Có hoạt động / chưa xong NV</span>
+              <span><i style="display:inline-block;width:10px;height:10px;background:var(--line);border-radius:50%"></i> Trống</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid two">
+          <div class="card">
+            <div class="calendar-header">
+              <button class="btn btn-outline btn-small" onclick="changeCalMonth(-1)">← Tháng trước</button>
+              <h3 id="calMonthTitle" style="margin:0">Tháng 11 / 2026</h3>
+              <button class="btn btn-outline btn-small" onclick="changeCalMonth(1)">Tháng sau →</button>
+            </div>
+            <div class="calendar-weekdays">
+              <div>T2</div><div>T3</div><div>T4</div><div>T5</div><div>T6</div><div>T7</div><div>CN</div>
+            </div>
+            <div class="calendar-grid" id="calendarGrid"></div>
+          </div>
+
+          <div class="card" id="historyDayDetailPanel">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+      </section>
+
+      <!-- 4. PHIÊN TẬP TRUNG POMODORO (FOCUS) -->
+      <section class="page" id="focus">
+        <div class="grid two">
+          <div class="card">
+            <span class="tag">POMODORO NÂNG CAO</span>
+            <h2 style="margin:8px 0 4px">Một việc, một lúc</h2>
+            <p class="muted" style="font-size:13.5px">Hoàn thành phiên tập trung tự động lưu lịch sử, cộng phút tập trung và nhận <b>+15 XP</b> (hoặc +1 XP/phút nếu phiên ≥ 10 phút).</p>
+
+            <div class="timer-wrap">
+              <div class="timer-circle" id="timerCircle">
+                <div class="timer-inner">
+                  <div class="timer-mode" id="timerMode">TẬP TRUNG</div>
+                  <div class="timer-time" id="timerDisplay">25:00</div>
+                  <small class="muted" id="timerHint">Sẵn sàng bắt đầu</small>
+                </div>
+              </div>
+
+              <div class="pill-row" style="justify-content:center;margin-bottom:12px">
+                <button class="pill" data-preset="15" onclick="setPomodoroPreset(15, 5)">15p / 5p (Khởi đầu)</button>
+                <button class="pill" data-preset="20" onclick="setPomodoroPreset(20, 5)">20p / 5p (Tăng tốc)</button>
+                <button class="pill selected" data-preset="25" onclick="setPomodoroPreset(25, 5)">25p / 5p (Tiêu chuẩn)</button>
+                <button class="pill" data-preset="45" onclick="setPomodoroPreset(45, 10)">45p / 10p (Chuyên sâu)</button>
+              </div>
+
+              <div style="display:flex;gap:10px;justify-content:center;align-items:center;max-width:340px;margin:0 auto 14px">
+                <div style="flex:1">
+                  <small class="muted">Tập trung (phút)</small>
+                  <input type="number" class="field" id="customFocusMin" min="1" max="180" value="25" onchange="applyCustomPomodoro()">
+                </div>
+                <div style="flex:1">
+                  <small class="muted">Nghỉ ngắn (phút)</small>
+                  <input type="number" class="field" id="customBreakMin" min="1" max="60" value="5" onchange="applyCustomPomodoro()">
+                </div>
+              </div>
+
+              <div class="timer-controls">
+                <button class="btn btn-primary" id="timerStartBtn" onclick="togglePomodoro()">▶ Bắt đầu</button>
+                <button class="btn btn-soft" id="timerSwitchModeBtn" onclick="switchPomodoroMode()">Chuyển sang Nghỉ</button>
+                <button class="btn btn-outline" onclick="resetPomodoro()">↺ Đặt lại</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="section-head" style="margin-top:0">
+              <h3>Thống kê & Lịch sử phiên tập trung</h3>
+              <span class="tag blue" id="focusSessionCountBadge">Hôm nay: 0 phiên</span>
+            </div>
+            <div class="grid two-eq" style="margin-bottom:16px">
+              <div style="background:var(--bg);padding:12px;border-radius:12px">
+                <small class="muted">Hôm nay</small>
+                <strong style="display:block;font-size:20px" id="todayFocusStats">0 phiên · 0 phút</strong>
+              </div>
+              <div style="background:var(--bg);padding:12px;border-radius:12px">
+                <small class="muted">Tháng này</small>
+                <strong style="display:block;font-size:20px" id="monthFocusStats">0 phiên · 0 phút</strong>
+              </div>
+            </div>
+
+            <h4>Sổ ghi nhanh suy nghĩ xao nhãng</h4>
+            <div style="display:flex;gap:8px;margin-bottom:12px">
+              <input class="field" id="distractionInput" placeholder="Ghi lại ý nghĩ chợt nảy ra để xử lý sau...">
+              <button class="btn btn-soft" onclick="addDistractionNote()">Ghi</button>
+            </div>
+            <div id="distractionList" style="margin-bottom:18px"></div>
+
+            <h4>Lịch sử phiên gần đây</h4>
+            <div id="focusHistoryList" style="max-height:260px;overflow-y:auto"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. MÔ HÌNH 4 TỰ (FOUR SELF) -->
+      <section class="page" id="fourself">
+        <div class="grid two-eq">
+          <!-- Tự giới hạn -->
+          <div class="card">
+            <span class="tag blue">1. TỰ GIỚI HẠN</span>
+            <h3>Kiểm soát môi trường số</h3>
+            <p class="muted" style="font-size:13px">Đánh dấu các cam kết bạn đã thực hiện hôm nay để nhận <b>+10 XP</b> mỗi mục.</p>
+            <div id="selfLimitChecklist"></div>
+          </div>
+
+          <!-- Tự tổ chức -->
+          <div class="card">
+            <span class="tag">2. TỰ TỔ CHỨC</span>
+            <h3>Tự kiểm tra thói quen số</h3>
+            <p class="muted" style="font-size:13px">Đánh giá mức độ phân tâm gần đây của bạn (Công cụ tự quan sát).</p>
+            <div id="quizContainer"></div>
+            <div id="quizResultBox"></div>
+          </div>
+
+          <!-- Tự làm chậm -->
+          <div class="card">
+            <span class="tag pink">3. TỰ LÀM CHẬM (KHÔNG MÀN HÌNH)</span>
+            <h3>Thử thách sống chậm</h3>
+            <p class="muted" style="font-size:13px">Chọn hoạt động không màn hình, đếm giờ hoặc ghi nhận trực tiếp (+15 XP).</p>
+            <div class="pill-row" id="slowActivityPills" style="margin-bottom:12px">
+              <button class="pill selected" onclick="selectSlowPreset(this, 'Đọc sách giấy')">📖 Đọc sách giấy</button>
+              <button class="pill" onclick="selectSlowPreset(this, 'Đi bộ / Vận động nhẹ')">🚶 Đi bộ</button>
+              <button class="pill" onclick="selectSlowPreset(this, 'Vẽ / Viết tay / Thủ công')">🎨 Vẽ / Viết</button>
+              <button class="pill" onclick="selectSlowPreset(this, 'Chăm sóc cây / Thiên nhiên')">🪴 Chăm sóc cây</button>
+              <button class="pill" onclick="selectSlowPreset(this, 'Nghe nhạc thư giãn')">🎵 Nghe nhạc</button>
+            </div>
+            <div style="background:var(--bg);padding:14px;border-radius:14px;margin-bottom:12px">
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <b id="slowCurrentLabel">📖 Đọc sách giấy</b>
+                <span class="timer-time" style="font-size:28px" id="slowTimerDisplay">30:00</span>
+              </div>
+              <div style="display:flex;gap:8px;margin-top:10px">
+                <button class="btn btn-primary btn-small" id="slowStartBtn" onclick="toggleSlowTimer()">▶ Bắt đầu 30p</button>
+                <button class="btn btn-outline btn-small" onclick="resetSlowTimer()">Đặt lại</button>
+                <button class="btn btn-soft btn-small" onclick="logSlowActivityManual()">+ Ghi nhận nhanh 30p</button>
+              </div>
+            </div>
+            <div id="slowHistoryList"></div>
+          </div>
+
+          <!-- Tự kết nối -->
+          <div class="card">
+            <span class="tag orange">4. TỰ KẾT NỐI (GIỜ VÀNG)</span>
+            <h3>Kết nối thế giới thực</h3>
+            <p class="muted" style="font-size:13px">Ghi nhận khoảng thời gian trò chuyện, ăn uống hoặc vận động cùng người thân, bạn bè (+15 XP).</p>
+            <label>Hoạt động kết nối</label>
+            <input class="field" id="connectActivityInput" placeholder="VD: Ăn tối không điện thoại cùng gia đình">
+            <div class="grid two-eq">
+              <div>
+                <label>Thời lượng (phút)</label>
+                <input type="number" class="field" id="connectMinInput" min="5" max="600" value="30">
+              </div>
+              <div>
+                <label>Ghi chú cảm xúc</label>
+                <input class="field" id="connectNoteInput" placeholder="Cảm thấy thư giãn, vui vẻ...">
+              </div>
+            </div>
+            <button class="btn btn-primary" style="margin-top:12px" onclick="saveConnectActivity()">💾 Lưu giờ vàng kết nối</button>
+            <div id="connectHistoryList" style="margin-top:14px"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 6. RANK HỌC TẬP & XP (RANK) -->
+      <section class="page" id="rank">
+        <div class="card" style="margin-bottom:18px">
+          <div class="grid two">
+            <div>
+              <span class="tag">HỆ THỐNG CẤP BẬC & ĐỘNG LỰC</span>
+              <h2 id="rankPageCurrentName" style="margin:8px 0">🌱 Beginner — Người mới bắt đầu</h2>
+              <p class="muted" id="rankPageDesc">Hoàn thành nhiệm vụ, phiên tập trung và duy trì chuỗi ngày để thăng hạng.</p>
+              <div style="margin:16px 0">
+                <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+                  <b id="rankPageXpTotal">0 XP</b>
+                  <span class="muted" id="rankPageNextGoal">Còn 100 XP để lên 📘 Learner</span>
+                </div>
+                <div class="progress" style="height:14px"><span id="rankPageBar" style="width:0%"></span></div>
+              </div>
+            </div>
+            <div style="background:var(--bg);padding:16px;border-radius:16px">
+              <b>Quy tắc tính XP minh bạch (Chống gian lận):</b>
+              <ul class="muted" style="font-size:13px;padding-left:18px;margin:8px 0 0">
+                <li>Hoàn thành 1 nhiệm vụ: <b>+20 XP</b> (Bỏ tích sẽ thu hồi 20 XP, mỗi ID chỉ nhận 1 lần).</li>
+                <li>Hoàn thành phiên Pomodoro: <b>+1 XP / phút</b> tập trung.</li>
+                <li>Hoạt động 30 phút chậm / Giờ vàng kết nối: <b>+15 XP / lần</b>.</li>
+                <li>Cam kết Tự giới hạn hàng ngày: <b>+10 XP / mục</b>.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid two">
+          <div class="card">
+            <h3>Lộ trình 6 Cấp bậc FocusUp</h3>
+            <div id="rankTiersList"></div>
+          </div>
+          <div class="card">
+            <h3>Huy hiệu thành tích & Lịch sử nhận XP</h3>
+            <div class="pill-row" id="achievementsList" style="margin-bottom:18px"></div>
+            <h4>Lịch sử biến động XP gần đây</h4>
+            <div id="xpHistoryList" style="max-height:300px;overflow-y:auto"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 7. BẠN BÈ & CỘNG ĐỒNG (FRIENDS) -->
+      <section class="page" id="friends">
+        <div class="card" style="margin-bottom:18px" id="friendFirebaseNotice">
+          <!-- Info about Firebase requirement -->
+        </div>
+
+        <div class="grid two">
+          <div class="card">
+            <h3>Tìm kiếm & Kết bạn</h3>
+            <p class="muted" style="font-size:13px">Mã người dùng của bạn: <b id="myFriendCodeDisplay" style="color:var(--purple);user-select:all">...</b></p>
+            <div style="display:flex;gap:8px;margin-bottom:14px">
+              <input class="field" id="friendSearchInput" placeholder="Nhập tên hiển thị hoặc mã người dùng...">
+              <button class="btn btn-primary" onclick="searchUsers()">Tìm</button>
+            </div>
+            <div id="friendSearchResults"></div>
+
+            <div class="section-head">
+              <h3>Lời mời kết bạn đang chờ</h3>
+            </div>
+            <div id="friendRequestsList"></div>
+          </div>
+
+          <div class="card">
+            <div class="section-head" style="margin-top:0">
+              <h3>Danh sách bạn bè (<span id="friendsCountLabel">0</span>)</h3>
+            </div>
+            <div id="friendsListContainer"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 8. BẢNG XẾP HẠNG (LEADERBOARD) -->
+      <section class="page" id="leaderboard">
+        <div class="card">
+          <div class="section-head" style="margin-top:0">
+            <div>
+              <span class="tag orange">THI ĐUA LÀNH MẠNH</span>
+              <h2 style="margin:6px 0 0">Bảng xếp hạng Bạn bè</h2>
+            </div>
+            <select class="field" id="leaderboardSortBy" style="width:auto" onchange="renderLeaderboard()">
+              <option value="xp">Xếp theo Tổng XP</option>
+              <option value="streak">Xếp theo Chuỗi tập trung</option>
+              <option value="focusMinutes">Xếp theo Phút tập trung</option>
+            </select>
+          </div>
+          <p class="muted" style="font-size:13px">Chỉ hiển thị bạn bè đã bật chế độ chia sẻ hoạt động cá nhân.</p>
+          <div id="leaderboardContainer" style="margin-top:16px"></div>
+        </div>
+      </section>
+
+      <!-- 9. ĐÁNH GIÁ VÀ TỔNG KẾT THÁNG (MONTHLY REPORT) -->
+      <section class="page" id="monthly">
+        <div class="card" style="margin-bottom:18px">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
+            <div>
+              <span class="tag green">BÁO CÁO DỮ LIỆU THỰC TẾ</span>
+              <h2 style="margin:6px 0 0" id="monthlyReportTitle">Tổng kết Tháng</h2>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center">
+              <input type="month" class="field" id="reportMonthPicker" onchange="renderMonthlyReport()">
+            </div>
+          </div>
+        </div>
+
+        <div class="grid stats" id="monthlyKpiGrid"></div>
+
+        <div class="grid two-eq" style="margin-bottom:18px">
+          <div class="card">
+            <h3>Biểu đồ thời gian tập trung theo ngày (phút)</h3>
+            <div class="bar-chart" id="chartFocusByDay"></div>
+          </div>
+          <div class="card">
+            <h3>Biểu đồ nhiệm vụ hoàn thành theo ngày</h3>
+            <div class="bar-chart" id="chartTasksByDay"></div>
+          </div>
+        </div>
+
+        <div class="grid two">
+          <div class="card">
+            <h3>Phân bổ hoạt động theo Mô hình 4 Tự</h3>
+            <div id="chartFourSelfBreakdown" style="margin-top:14px"></div>
+          </div>
+          <div class="card">
+            <h3>So sánh với tháng trước & Nhận xét hệ thống</h3>
+            <div id="monthlyComparisonBox"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 10. CÁ NHÂN HÓA GIAO DIỆN & ÂM THANH (CUSTOMIZE) -->
+      <section class="page" id="customize">
+        <div class="grid two-eq">
+          <div class="card">
+            <span class="tag">GIAO DIỆN & HÌNH NỀN</span>
+            <h3>Tùy chỉnh không gian học tập</h3>
+
+            <label>Bảng màu chủ đạo</label>
+            <div class="pill-row" id="themeColorPicker">
+              <button class="pill selected" data-theme-val="default" onclick="setThemeColor('default')">🟣 Tím FocusUp</button>
+              <button class="pill" data-theme-val="ocean" onclick="setThemeColor('ocean')">🔵 Xanh Đại dương</button>
+              <button class="pill" data-theme-val="emerald" onclick="setThemeColor('emerald')">🟢 Xanh Rừng cây</button>
+              <button class="pill" data-theme-val="rose" onclick="setThemeColor('rose')">🌸 Hồng Phấn</button>
+              <button class="pill" data-theme-val="amber" onclick="setThemeColor('amber')">🟠 Cam Ấm áp</button>
+              <button class="pill" data-theme-val="dark" onclick="setThemeColor('dark')">🌙 Chế độ Tối (Dark)</button>
+            </div>
+
+            <label>Hình nền có sẵn</label>
+            <div class="pill-row">
+              <button class="pill" onclick="applyPresetBg('')">Mặc định (Không ảnh)</button>
+              <button class="pill" onclick="applyPresetBg('https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1600&q=80')">🏞️ Thung lũng yên bình</button>
+              <button class="pill" onclick="applyPresetBg('https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=1600&q=80')">🌌 Đêm sao tĩnh lặng</button>
+              <button class="pill" onclick="applyPresetBg('https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&w=1600&q=80')">📚 Bàn học tối giản</button>
+            </div>
+
+            <label>URL Hình ảnh nền (JPG, PNG, WEBP)</label>
+            <div style="display:flex;gap:8px">
+              <input class="field" id="customBgImageUrl" placeholder="https://example.com/wallpaper.jpg">
+              <button class="btn btn-soft" onclick="applyCustomImageUrl()">Áp dụng</button>
+            </div>
+
+            <label>URL Video nền động (MP4/WebM)</label>
+            <div style="display:flex;gap:8px">
+              <input class="field" id="customBgVideoUrl" placeholder="https://example.com/loop.mp4">
+              <button class="btn btn-soft" onclick="applyCustomVideoUrl()">Áp dụng</button>
+            </div>
+            <div style="margin-top:8px">
+              <label style="display:inline-flex;align-items:center;gap:8px;cursor:pointer">
+                <input type="checkbox" id="toggleVideoBgCheck" checked onchange="toggleVideoBgPlayback()">
+                <span>Bật phát hình nền động (nếu có URL video)</span>
+              </label>
+            </div>
+
+            <label>Độ mờ lớp phủ nền (Giúp chữ luôn dễ đọc: <span id="overlayOpacityLabel">85%</span>)</label>
+            <input type="range" id="overlayOpacityRange" min="20" max="98" value="85" style="width:100%" oninput="updateOverlayOpacity(this.value)">
+
+            <div style="margin-top:18px">
+              <button class="btn btn-outline" onclick="resetAppearanceDefaults()">↺ Khôi phục giao diện mặc định</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <span class="tag blue">NHẠC NỀN & HIỆU ỨNG ÂM THANH</span>
+            <h3>Cài đặt âm thanh tập trung</h3>
+
+            <label>URL Tệp âm thanh hoặc Video có tiếng (MP3, OGG, WAV, MP4)</label>
+            <div style="display:flex;gap:8px">
+              <input class="field" id="customAudioUrlInput" placeholder="Nhập link nhạc Lofi, tiếng mưa, sóng biển...">
+              <button class="btn btn-primary" onclick="loadCustomAudioUrl()">Tải nhạc</button>
+            </div>
+            <small class="muted" id="audioStatusText" style="display:block;margin-top:6px">Chưa tải nguồn nhạc nền.</small>
+
+            <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px">
+              <button class="btn btn-soft" id="audioPlayPauseBtn" onclick="toggleBgAudioPlay()">▶ Phát nhạc</button>
+              <label style="display:inline-flex;align-items:center;gap:6px;margin:0;cursor:pointer">
+                <input type="checkbox" id="audioLoopCheck" checked onchange="updateAudioSettings()">
+                <span>Phát lặp lại</span>
+              </label>
+            </div>
+
+            <label>Âm lượng nhạc nền (<span id="bgVolumeLabel">50%</span>)</label>
+            <input type="range" id="bgVolumeRange" min="0" max="100" value="50" style="width:100%" oninput="updateAudioSettings()">
+
+            <hr style="border:0;border-top:1px solid var(--line);margin:20px 0">
+
+            <h4>Hiệu ứng âm thanh thao tác (Web Audio API)</h4>
+            <p class="muted" style="font-size:13px">Âm thanh nhẹ nhàng khi nhấn nút, hoàn thành nhiệm vụ, hết giờ Pomodoro và lên cấp.</p>
+            <label style="display:inline-flex;align-items:center;gap:8px;cursor:pointer">
+              <input type="checkbox" id="sfxEnableCheck" checked onchange="updateSfxSettings()">
+              <span>Bật hiệu ứng âm thanh thao tác</span>
+            </label>
+
+            <label>Âm lượng hiệu ứng (<span id="sfxVolumeLabel">40%</span>)</label>
+            <input type="range" id="sfxVolumeRange" min="0" max="100" value="40" style="width:100%" oninput="updateSfxSettings()">
+
+            <div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap">
+              <button class="btn btn-outline btn-small" onclick="playSfx('click')">Thử tiếng Click</button>
+              <button class="btn btn-outline btn-small" onclick="playSfx('complete')">Thử tiếng Hoàn thành</button>
+              <button class="btn btn-outline btn-small" onclick="playSfx('levelup')">Thử tiếng Lên cấp</button>
+              <button class="btn btn-outline btn-small" onclick="resetAudioDefaults()">↺ Khôi phục âm thanh</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 11. HỒ SƠ CÁ NHÂN (PROFILE) -->
+      <section class="page" id="profile">
+        <div class="card" style="max-width:780px">
+          <div style="display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin-bottom:20px">
+            <div class="avatar-circle" id="profileBigAvatar" style="width:72px;height:72px;font-size:30px">U</div>
+            <div style="flex:1">
+              <span class="tag" id="profileRankBadge">🌱 Beginner</span>
+              <h2 style="margin:6px 0 2px" id="profileNameHeading">Người dùng FocusUp</h2>
+              <small class="muted">Mã kết bạn: <b id="profileFriendCode">...</b> · Tham gia từ: <b id="profileStartDate">...</b></small>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:10px;align-items:flex-end;margin-bottom:24px;flex-wrap:wrap">
+            <div style="flex:1;min-width:220px">
+              <label style="margin-top:0">Đổi tên hiển thị</label>
+              <input class="field" id="editDisplayNameInput" placeholder="Nhập tên hiển thị của bạn">
+            </div>
+            <button class="btn btn-primary" onclick="updateDisplayName()">Cập nhật tên</button>
+          </div>
+
+          <div class="grid three">
+            <div style="background:var(--bg);padding:16px;border-radius:14px">
+              <small class="muted">Ngày sử dụng FocusUp</small>
+              <strong style="display:block;font-size:22px" id="profDaysSinceStart">1 ngày</strong>
+            </div>
+            <div style="background:var(--bg);padding:16px;border-radius:14px">
+              <small class="muted">Tổng số ngày có hoạt động</small>
+              <strong style="display:block;font-size:22px" id="profActiveDays">0 ngày</strong>
+            </div>
+            <div style="background:var(--bg);padding:16px;border-radius:14px">
+              <small class="muted">Tổng số phút tập trung</small>
+              <strong style="display:block;font-size:22px" id="profTotalFocus">0 phút</strong>
+            </div>
+            <div style="background:var(--bg);padding:16px;border-radius:14px">
+              <small class="muted">Tổng nhiệm vụ hoàn thành</small>
+              <strong style="display:block;font-size:22px" id="profTotalTasks">0</strong>
+            </div>
+            <div style="background:var(--bg);padding:16px;border-radius:14px">
+              <small class="muted">Cấp bậc & Tổng XP</small>
+              <strong style="display:block;font-size:20px" id="profRankXp">Beginner · 0 XP</strong>
+            </div>
+            <div style="background:var(--bg);padding:16px;border-radius:14px">
+              <small class="muted">Chuỗi hiện tại / Kỷ lục</small>
+              <strong style="display:block;font-size:22px" id="profStreaks">0 / 0 ngày</strong>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 12. CÀI ĐẶT & BẢO MẬT (SETTINGS) -->
+      <section class="page" id="settings">
+        <div class="grid two-eq">
+          <div class="card">
+            <span class="tag">QUYỀN RIÊNG TƯ & BẢO MẬT</span>
+            <h3>Kiểm soát chia sẻ với bạn bè</h3>
+            <p class="muted" style="font-size:13px">Bảo vệ dữ liệu cá nhân. Email và thông tin đăng nhập không bao giờ bị chia sẻ công khai.</p>
+
+            <div style="margin:16px 0">
+              <label style="display:flex;align-items:center;gap:10px;cursor:pointer">
+                <input type="checkbox" id="privShareProfileCheck" checked onchange="savePrivacySettings()">
+                <span>Cho phép bạn bè xem Rank, XP, Chuỗi và thống kê tập trung</span>
+              </label>
+              <label style="display:flex;align-items:center;gap:10px;cursor:pointer">
+                <input type="checkbox" id="privShareHistoryCheck" checked onchange="savePrivacySettings()">
+                <span>Cho phép bạn bè xem tiến trình theo ngày/tháng trên bảng xếp hạng</span>
+              </label>
+              <label style="display:flex;align-items:center;gap:10px;cursor:pointer">
+                <input type="checkbox" id="privAllowSearchCheck" checked onchange="savePrivacySettings()">
+                <span>Cho phép người khác tìm thấy tôi qua tên hiển thị hoặc mã bạn bè</span>
+              </label>
+            </div>
+
+            <h4>Danh sách người dùng đã chặn</h4>
+            <div id="blockedUsersList"></div>
+          </div>
+
+          <div class="card">
+            <span class="tag blue">DỮ LIỆU & KẾT NỐI CLOUD</span>
+            <h3>Sao lưu, Khôi phục & Firebase</h3>
+            <p class="muted" style="font-size:13px">Bạn có thể xuất toàn bộ dữ liệu ra file JSON để sao lưu hoặc chuyển sang thiết bị khác bất kỳ lúc nào.</p>
+
+            <div style="display:flex;gap:10px;flex-wrap:wrap;margin:16px 0">
+              <button class="btn btn-primary" onclick="exportUserDataJson()">⬇ Xuất dữ liệu (.JSON)</button>
+              <label class="btn btn-outline" style="margin:0;cursor:pointer">
+                ⬆ Nhập dữ liệu (.JSON)
+                <input type="file" accept=".json" style="display:none" onchange="importUserDataJson(event)">
+              </label>
+            </div>
+
+            <div style="background:var(--bg);padding:14px;border-radius:14px;margin-top:16px">
+              <b>Trạng thái Backend Firebase:</b>
+              <p class="muted" id="firebaseConfigStatusText" style="font-size:13px;margin:6px 0">
+                Đang chạy ở chế độ Local Storage. Để kích hoạt đăng nhập nhiều thiết bị và kết bạn thời gian thực, hãy điền cấu hình Firebase vào tệp <code>firebase-config.js</code>.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- MODAL: CHÀO MỪNG LẦN ĐẦU / ĐĂNG NHẬP / ĐĂNG KÝ -->
+  <div class="modal-backdrop" id="authModal">
+    <div class="modal-box">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <h3 style="margin:0" id="authModalTitle">Chào mừng đến với FocusUp</h3>
+        <button class="text-btn" id="closeAuthModalBtn" onclick="closeAuthModal()">✕</button>
+      </div>
+      <p class="muted" style="font-size:13.5px" id="authModalSub">
+        Nhập tên hiển thị để bắt đầu ngay trên trình duyệt, hoặc đăng nhập tài khoản Cloud để đồng bộ dữ liệu & kết bạn.
+      </p>
+
+      <div id="localQuickStartBox">
+        <label>Tên hiển thị của bạn *</label>
+        <input class="field" id="quickDisplayNameInput" placeholder="VD: Minh Anh">
+        <button class="btn btn-primary" style="width:100%;margin-top:12px" onclick="saveQuickLocalProfile()">Bắt đầu sử dụng FocusUp →</button>
+      </div>
+
+      <div id="firebaseAuthSection" style="margin-top:18px;padding-top:16px;border-top:1px solid var(--line)">
+        <div class="pill-row" style="margin-bottom:12px">
+          <button class="pill selected" id="tabLoginBtn" onclick="switchAuthTab('login')">Đăng nhập Cloud</button>
+          <button class="pill" id="tabRegisterBtn" onclick="switchAuthTab('register')">Đăng ký tài khoản mới</button>
+        </div>
+
+        <div id="registerNameWrap" style="display:none">
+          <label>Tên hiển thị</label>
+          <input class="field" id="authRegNameInput" placeholder="Tên hiển thị của bạn">
+        </div>
+        <label>Email</label>
+        <input class="field" type="email" id="authEmailInput" placeholder="email@example.com">
+        <label>Mật khẩu</label>
+        <input class="field" type="password" id="authPassInput" placeholder="Tối thiểu 6 ký tự">
+
+        <button class="btn btn-primary" style="width:100%;margin-top:14px" id="submitFirebaseAuthBtn" onclick="handleFirebaseAuthSubmit()">Đăng nhập</button>
+        <button class="btn btn-danger" style="width:100%;margin-top:10px;display:none" id="logoutFirebaseBtn" onclick="handleFirebaseLogout()">Đăng xuất tài khoản Cloud</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: XEM TIẾN TRÌNH BẠN BÈ -->
+  <div class="modal-backdrop" id="friendProfileModal">
+    <div class="modal-box" style="max-width:560px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <h3 style="margin:0" id="friendModalTitle">Hồ sơ bạn bè</h3>
+        <button class="text-btn" onclick="document.getElementById('friendProfileModal').classList.remove('open')">✕</button>
+      </div>
+      <div id="friendModalBody"></div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <!-- Firebase SDK (Compat v10 for seamless browser execution without bundler) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+  <!-- App Scripts -->
+  <script src="firebase-config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
