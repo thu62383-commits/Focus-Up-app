@@ -1,0 +1,78 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Hàm kiểm tra người dùng đã đăng nhập
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Hàm kiểm tra chủ sở hữu tài liệu
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // Hàm kiểm tra 2 người có phải bạn bè đã xác nhận hay không
+    function isFriendWith(targetUserId) {
+      return isSignedIn() &&
+        exists(/databases/$(database)/documents/users/$(targetUserId)/friends/$(request.auth.uid));
+    }
+
+    // Hàm kiểm tra không bị người dùng kia chặn
+    function isNotBlockedBy(targetUserId) {
+      return isSignedIn() &&
+        !exists(/databases/$(database)/documents/users/$(targetUserId)/blocked/$(request.auth.uid));
+    }
+
+    // 1. Hồ sơ công khai cơ bản để tìm kiếm (chỉ chứa displayName, friendCode, allowSearch, privacy)
+    // Tuyệt đối KHÔNG lưu email, vị trí hay dữ liệu nhạy cảm ở collection này.
+    match /public_profiles/{userId} {
+      allow read: if isSignedIn() && isNotBlockedBy(userId);
+      allow create, update, delete: if isOwner(userId);
+    }
+
+    // 2. Dữ liệu chính của người dùng (Tasks, DailyActivities, FocusSessions, XP, Streaks, Preferences)
+    match /users/{userId} {
+      // Chủ sở hữu đọc/ghi toàn quyền
+      allow read, write: if isOwner(userId);
+
+      // Bạn bè chỉ được ĐỌC nếu: là bạn bè + không bị chặn + chủ tài khoản bật shareProfile
+      allow read: if isFriendWith(userId)
+                  && isNotBlockedBy(userId)
+                  && resource.data.privacy.shareProfile == true;
+
+      // Subcollection: Danh sách bạn bè
+      match /friends/{friendId} {
+        allow read: if isOwner(userId) || isOwner(friendId);
+        // Cho phép tạo/xóa quan hệ bạn bè khi chấp nhận lời mời hoặc hủy kết bạn
+        allow write: if isOwner(userId) || isOwner(friendId);
+      }
+
+      // Subcollection: Danh sách chặn
+      match /blocked/{blockedUserId} {
+        allow read, write: if isOwner(userId);
+      }
+    }
+
+    // 3. Lời mời kết bạn (FriendRequests)
+    match /friend_requests/{requestId} {
+      // Người gửi hoặc người nhận đều có thể đọc lời mời liên quan đến mình
+      allow read: if isSignedIn() && (
+        resource.data.fromUid == request.auth.uid ||
+        resource.data.toUid == request.auth.uid
+      );
+
+      // Chỉ được gửi lời mời dưới danh nghĩa chính mình và không bị đối phương chặn
+      allow create: if isSignedIn()
+                    && request.resource.data.fromUid == request.auth.uid
+                    && request.resource.data.fromUid != request.resource.data.toUid
+                    && isNotBlockedBy(request.resource.data.toUid);
+
+      // Chỉ người nhận mới được cập nhật trạng thái (chấp nhận/từ chối), hoặc người gửi hủy
+      allow update, delete: if isSignedIn() && (
+        resource.data.fromUid == request.auth.uid ||
+        resource.data.toUid == request.auth.uid
+      );
+    }
+  }
+}
